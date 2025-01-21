@@ -16,6 +16,17 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["./*"],
+      "@/common/*": ["src/common/*"],
+      "@/entities/*": ["src/common/entities/*"],
+      "@/interfaces/*": ["src/common/interfaces/*"],
+      "@/mappers/*": ["src/common/mappers/*"],
+      "@/dtos/*": ["src/common/dtos/*"],
+      "@/config/*": ["src/config/*"],
+      "@/products/*": ["src/items/*"],
+      "@/users/*": ["src/users/*"]
+    }
   }
 }
