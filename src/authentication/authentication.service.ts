@@ -7,12 +7,38 @@ import * as bcrypt from 'bcryptjs';
 import { IUser } from '../common/interfaces/user.interface';
 import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserRoles } from '../types/enum';
+import { Role } from '../common/entities/role';
 
 export class AuthenticationService {
   constructor(
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
     private readonly jwtService: JwtService,
   ) {}
+  private async ensureDefaultRoles(): Promise<void> {
+    const roles = Object.values(UserRoles);
+    const existingRoles = await this.roleRepository.find();
+
+    const rolesToCreate = roles.filter(
+      (roleName) => !existingRoles.some((role) => role.name === roleName),
+    );
+
+    const newRoles = rolesToCreate.map((roleName) =>
+      this.roleRepository.create({ name: roleName }),
+    );
+
+    await this.roleRepository.save(newRoles);
+  }
+  private async generateToken(user: User): Promise<string> {
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
+    return this.jwtService.signAsync(payload);
+  }
 
   async register(
     registerDTO: RegisterDTO,
@@ -21,18 +47,18 @@ export class AuthenticationService {
       const user = await this.userRepository.findOneBy({ id: registerDTO.id });
       if (user) return HttpStatus.CONFLICT;
       const newUser = this.userRepository.create(registerDTO);
+      await this.ensureDefaultRoles();
+      const defaultRole = await this.roleRepository.findOne({
+        where: { name: UserRoles.user },
+      });
       const hashedPassword = await bcrypt.hash(newUser.password, 12);
       newUser.password = hashedPassword;
-      await this.userRepository.save(newUser);
-
-      const payload = {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-      };
-
-      const token = await this.jwtService.signAsync(payload);
-      const response = mapUserToInterface(newUser);
+      const savedUser = await this.userRepository.save({
+        ...newUser,
+        roles: [defaultRole],
+      });
+      const token = await this.generateToken(savedUser);
+      const response = mapUserToInterface(savedUser);
 
       return { status: HttpStatus.OK, data: response, token: token };
     } catch (error) {

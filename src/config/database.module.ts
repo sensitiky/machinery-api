@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '@/entities/user';
-import { Item } from '@/entities/items';
+import { Item } from '@/src/common/entities/item';
 import { Role } from '@/entities/role';
 
 const entities = [User, Role, Item];
@@ -28,7 +28,7 @@ const entities = [User, Role, Item];
           username: username,
           password: password,
           entities: entities,
-          logging: false,
+          logging: true,
           ssl: false,
           synchronize: true,
         };

@@ -1,4 +1,4 @@
-import { Item } from '@/entities/items';
+import { Item } from '@/src/common/entities/item';
 import { Role } from '@/entities/role';
 
 export interface IUser {
