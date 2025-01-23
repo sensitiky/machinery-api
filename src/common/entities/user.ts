@@ -1,7 +1,7 @@
 import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
-import { Item } from './items';
 import { BaseEntity } from './base';
 import { Role } from './role';
+import { Item } from './item';
 
 @Entity('users')
 export class User extends BaseEntity {

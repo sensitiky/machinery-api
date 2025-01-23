@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { User } from './user';
 import { BaseEntity } from './base';
+import { User } from './user';
 
 @Entity('items')
 export class Item extends BaseEntity {
@@ -13,6 +13,5 @@ export class Item extends BaseEntity {
   @Column()
   price: number;
 
-  @ManyToOne(() => User, (user) => user.items)
   publisher: User;
 }

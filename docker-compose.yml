@@ -1,0 +1,35 @@
+services:
+  api:
+    build:
+      context: .  
+      dockerfile: dockerfile
+    container_name: machinery-services
+    depends_on:
+      - db
+    ports:
+      - 3000:3000 
+    env_file:
+      - .env 
+    networks:
+      - app-network
+
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    ports:
+      - 5432:5432 
+    environment:
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: 8T9-R,3Q£/i 
+      POSTGRES_DB: machinery
+    volumes:
+      - postgres-data:/var/lib/postgresql/data 
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
