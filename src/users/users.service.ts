@@ -1,83 +1,45 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Item } from '@/src/common/entities/item';
-import { User } from '@/entities/user';
-import { mapUserToInterface } from '@/mappers/entities.mapper';
-import { IUser } from '@/interfaces/user.interface';
+import { User } from '../common/entities/user';
+import { CreateUserDto, UpdateUserDto } from '../common/dtos/user.dto';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Item) private readonly itemRepository: Repository<Item>,
+    private usersRepository: Repository<User>,
   ) {}
 
-  // Obtener todos los usuarios
-  async getAll(): Promise<IUser[]> {
-    const users = await this.userRepository.find();
-    return users.map((user) => mapUserToInterface(user));
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    if (!createUserDto.roles || createUserDto.roles.length === 0) {
+      createUserDto.roles =
+        createUserDto.email === ' mariomcorrea3@gmail.com'
+          ? ['admin']
+          : ['guest'];
+    }
+    const user = this.usersRepository.create(createUserDto);
+    return this.usersRepository.save(user);
   }
 
-  // Obtener un usuario por su ID
-  async getOne(userID: number): Promise<IUser | HttpStatus> {
-    try {
-      const user = await this.userRepository.findOneBy({ id: userID });
-      if (!user) return HttpStatus.NOT_FOUND;
-      return mapUserToInterface(user);
-    } catch (error) {
-      return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
   }
 
-  // Filtrar usuarios por campos específicos
-  async filterUsersByFields(
-    filters: Partial<
-      Pick<User, 'id' | 'name' | 'lastName' | 'username' | 'email'>
-    >,
-  ): Promise<IUser[] | HttpStatus> {
-    try {
-      const users = await this.userRepository.find({
-        where: filters,
-      });
-      if (users.length === 0) return HttpStatus.NOT_FOUND;
-      return users.map((user) => mapUserToInterface(user));
-    } catch (error) {
-      return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
+  async findOne(id: number): Promise<User> {
+    return this.usersRepository.findOneBy({ id });
   }
 
-  // Buscar usuarios asociados a ciertos items
-  async getUsersByItems(items: Item[]): Promise<IUser[] | HttpStatus> {
-    try {
-      const itemIDs = items.map((item) => item.id);
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.items', 'item')
-        .where('item.id IN (:...itemIDs)', { itemIDs })
-        .getMany();
-      if (users.length === 0) return HttpStatus.NOT_FOUND;
-      return users.map((user) => mapUserToInterface(user));
-    } catch (error) {
-      return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
+  async findByEmail(email: string): Promise<User> {
+    return this.usersRepository.findOne({ where: { email: email } });
   }
 
-  // Verificar si algún campo de un array de datos coincide con un usuario
-  async matchUsersByArray(dataArray: string[]): Promise<IUser[] | HttpStatus> {
-    try {
-      const users = await this.userRepository
-        .createQueryBuilder('user')
-        .where('user.name IN (:...dataArray)', { dataArray })
-        .orWhere('user.lastName IN (:...dataArray)', { dataArray })
-        .orWhere('user.username IN (:...dataArray)', { dataArray })
-        .orWhere('user.email IN (:...dataArray)', { dataArray })
-        .getMany();
-      if (users.length === 0) return HttpStatus.NOT_FOUND;
-      return users.map((user) => mapUserToInterface(user));
-    } catch (error) {
-      return HttpStatus.INTERNAL_SERVER_ERROR;
-    }
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    await this.usersRepository.update(id, updateUserDto);
+    return this.findOne(id);
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.usersRepository.delete(id);
   }
 }

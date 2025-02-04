@@ -1,10 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ConsoleLogger } from '@nestjs/common';
 
 async function bootstrap() {
+  const logger = new ConsoleLogger();
+  const port = 4000;
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: ['*'] });
-  await app.listen(process.env.PORT ?? 3000);
+  app.enableCors();
+  await app.listen(process.env.PORT ?? port);
+  logger.log(`api running on port: ${port}`);
 }
 bootstrap();

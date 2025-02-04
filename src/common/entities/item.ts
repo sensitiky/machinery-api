@@ -1,17 +1,15 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, Relation } from 'typeorm';
 import { BaseEntity } from './base';
-import { User } from './user';
+import { Seller } from './seller';
 
-@Entity('items')
+@Entity()
 export class Item extends BaseEntity {
   @Column()
   title: string;
-
-  @Column()
-  description: string;
-
-  @Column()
+  @Column({ nullable: true })
   price: number;
-
-  publisher: User;
+  @Column({ nullable: true })
+  description: string;
+  @ManyToOne(() => Seller, (seller) => seller.products)
+  seller: Relation<Seller>;
 }

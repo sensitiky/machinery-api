@@ -1,58 +1,66 @@
-import { Injectable, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { Item } from '@/common/entities/item';
-import { CreateItemDTO, UpdateItemDTO } from '@/common/dtos/item.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
+import { Item } from '../common/entities/item';
 
 @Injectable()
-export class ItemService {
+export class ItemsService {
+  private readonly logger = new ConsoleLogger();
   constructor(
-    @InjectRepository(Item) private readonly itemRepository: Repository<Item>,
+    @InjectRepository(Item)
+    private itemsRepository: Repository<Item>,
   ) {}
 
-  async addItem(createItemDTO: CreateItemDTO): Promise<Item> {
+  async create(createItemDto: CreateItemDto): Promise<Item> {
+    const item = this.itemsRepository.create({
+      ...createItemDto,
+      seller: { id: createItemDto.seller.id },
+    });
+    return this.itemsRepository.save(item);
+  }
+
+  async findAll(orderBy: 'asc' | 'desc' = 'asc'): Promise<Item[]> {
+    return this.itemsRepository.find({
+      order: { createdAt: orderBy },
+      relations: ['seller'],
+    });
+  }
+  async findLatest(): Promise<Item[]> {
     try {
-      const newItem = this.itemRepository.create(createItemDTO);
-      return await this.itemRepository.save(newItem);
+      const items = await this.itemsRepository.find({
+        order: { createdAt: 'desc' },
+        relations: ['seller'],
+      });
+      return items;
     } catch (error) {
-      throw new Error('Failed to add item');
+      this.logger.error(error);
     }
   }
 
-  async updateItem(id: number, updateItemDTO: UpdateItemDTO): Promise<Item> {
+  async findFeatured(): Promise<Item[] | null> {
     try {
-      await this.itemRepository.update(id, updateItemDTO);
-      return await this.itemRepository.findOneBy({ id });
+      const items = await this.itemsRepository.find({
+        order: { createdAt: 'desc' },
+        relations: ['seller'],
+      });
+      return items;
     } catch (error) {
-      throw new Error('Failed to update item');
+      this.logger.error(error);
     }
   }
-
-  async deleteItem(id: number): Promise<void> {
-    try {
-      const item = await this.itemRepository.findOneBy({ id });
-      if (!item) throw new Error('Item not found');
-      await this.itemRepository.delete(id);
-    } catch (error) {
-      throw new Error('Failed to delete item');
-    }
+  async findOne(id: number): Promise<Item> {
+    return this.itemsRepository.findOne({
+      where: { id },
+      relations: ['seller'],
+    });
+  }
+  async update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
+    await this.itemsRepository.update(id, updateItemDto);
+    return this.findOne(id);
   }
 
-  async getItem(id: number): Promise<Item> {
-    try {
-      const item = await this.itemRepository.findOneBy({ id });
-      if (!item) throw new Error('Item not found');
-      return item;
-    } catch (error) {
-      throw new Error('Failed to retrieve item');
-    }
-  }
-
-  async getAllItems(): Promise<Item[]> {
-    try {
-      return await this.itemRepository.find();
-    } catch (error) {
-      throw new Error('Failed to retrieve items');
-    }
+  async remove(id: number): Promise<void> {
+    await this.itemsRepository.delete(id);
   }
 }

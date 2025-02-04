@@ -1,17 +1,25 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
+export class CreateUserDto {
+  @IsNotEmpty()
+  username: string;
+  @IsNotEmpty()
+  email: string;
+  @IsNotEmpty()
+  password: string;
+  @IsOptional()
+  roles?: string[];
+}
+
 export class RegisterDTO {
   @IsNotEmpty()
   id: number;
   @IsNotEmpty()
   name: string;
-
   @IsNotEmpty()
   lastName: string;
-
   @IsNotEmpty()
   email: string;
-
   @IsNotEmpty()
   password: string;
 }
@@ -19,25 +27,17 @@ export class RegisterDTO {
 export class LoginDTO {
   @IsOptional()
   username: string;
-
   @IsNotEmpty()
   email: string;
-
   @IsNotEmpty()
   password: string;
 }
-export class UpdateDTO {
-  @IsNotEmpty()
-  id: number;
+export class UpdateUserDto {
   @IsOptional()
-  name: string;
+  username?: string;
+  @IsOptional()
+  password?: string;
 
   @IsOptional()
-  lastName: string;
-
-  @IsOptional()
-  email: string;
-
-  @IsOptional()
-  password: string;
+  roles?: string[];
 }

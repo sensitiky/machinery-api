@@ -1,12 +1,13 @@
-export class CreateItemDTO {
-  title: string;
-  description: string;
-  price: number;
-  publisherId: number;
-}
+import { Seller } from '../entities/seller';
 
-export class UpdateItemDTO {
+export class CreateItemDto {
+  title: string;
+  price?: number;
+  description?: string;
+  seller: Seller;
+}
+export class UpdateItemDto {
   title?: string;
   description?: string;
-  price?: number;
+  seller: Seller;
 }
