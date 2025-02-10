@@ -6,6 +6,7 @@ import { Item } from './item';
 export class Seller extends BaseEntity {
   @Column()
   username: string;
+
   @Column({ unique: true })
   email: string;
 

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ItemsService } from './item.service';
@@ -28,6 +29,10 @@ export class ItemsController {
   @Get('featured')
   async findFeatured() {
     return await this.itemsService.findFeatured();
+  }
+  @Get('search')
+  async searchItems(@Query('query') query: string) {
+    return this.itemsService.search(query);
   }
   @Get(':id')
   async findOne(@Param('id') id: string) {
