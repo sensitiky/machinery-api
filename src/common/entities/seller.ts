@@ -1,6 +1,14 @@
-import { Entity, Column, OneToMany, Relation, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  Relation,
+  JoinColumn,
+  OneToOne,
+  OneToMany,
+} from 'typeorm';
 import { BaseEntity } from './base';
 import { Item } from './item';
+import { User } from './user';
 
 @Entity()
 export class Seller extends BaseEntity {
@@ -10,10 +18,10 @@ export class Seller extends BaseEntity {
   @Column({ unique: true })
   email: string;
 
-  @JoinTable({
-    name: 'itemSeller',
-    joinColumn: { name: 'sellerId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'itemId', referencedColumnName: 'id' },
-  })
-  products: Relation<Item[]>;
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: Relation<User>;
+
+  @OneToMany(() => Item, (item) => item.seller)
+  items: Relation<Item[]>;
 }

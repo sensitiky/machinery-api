@@ -10,6 +10,8 @@ export class Item extends BaseEntity {
   price: number;
   @Column({ nullable: true })
   description: string;
-  @ManyToOne(() => Seller, (seller) => seller.products)
+  @Column({ nullable: true })
+  imageUrl: string;
+  @ManyToOne(() => Seller, (seller) => seller.items)
   seller: Relation<Seller>;
 }

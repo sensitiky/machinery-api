@@ -1,19 +1,24 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import { ILike, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
 import { Item } from '../common/entities/item';
 import { Seller } from '../common/entities/seller';
+import { CloudinaryService } from './cloudinary.service';
+import { User } from '../common/entities/user';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class ItemsService {
   private readonly logger = new ConsoleLogger();
   constructor(
     @InjectRepository(Item)
-    private itemsRepository: Repository<Item>,
-
+    private readonly itemsRepository: Repository<Item>,
     @InjectRepository(Seller)
-    private sellerRepository: Repository<Seller>,
+    private readonly sellerRepository: Repository<Seller>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(createItemDto: CreateItemDto): Promise<Item> {
@@ -33,7 +38,43 @@ export class ItemsService {
 
     return await this.itemsRepository.save(item);
   }
+  async createWithImage(
+    createItemDto: CreateItemDto,
+    file?: Express.Multer.File,
+  ): Promise<Item> {
+    try {
+      let imageUrl: string | undefined;
 
+      if (file) {
+        imageUrl = await this.cloudinaryService.uploadImage(file);
+      }
+      const user = await this.userRepository.findOne({
+        where: { email: createItemDto.seller.email },
+        relations: ['seller'],
+      });
+      if (!user) throw new NotFoundException('User not found');
+      let seller = user.seller;
+      if (!seller) {
+        seller = this.sellerRepository.create({
+          username: user.username,
+          email: user.email,
+          user: user,
+        });
+        seller = await this.sellerRepository.save(seller);
+      }
+
+      const item = this.itemsRepository.create({
+        ...createItemDto,
+        imageUrl,
+        seller,
+      });
+
+      return await this.itemsRepository.save(item);
+    } catch (error) {
+      this.logger.error('Error creating item with image:', error);
+      throw error;
+    }
+  }
   async findAll(orderBy: 'asc' | 'desc' = 'asc'): Promise<Item[]> {
     return this.itemsRepository.find({
       order: { createdAt: orderBy },
@@ -66,7 +107,7 @@ export class ItemsService {
   async findOne(id: number): Promise<Item> {
     const response = await this.itemsRepository.findOne({
       where: { id },
-      relations: ['seller'],
+      relations: ['seller', 'seller.items'],
     });
     return response;
   }

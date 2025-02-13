@@ -26,6 +26,14 @@ export class AuthService {
       username: user.username,
       sub: user.id,
       roles: user.roles,
+      seller: user.seller
+        ? {
+            id: user.seller.id,
+            name: user.seller.name,
+            email: user.seller.email,
+            items: user.seller.items,
+          }
+        : null,
     };
     return this.jwtService.sign(payload);
   }

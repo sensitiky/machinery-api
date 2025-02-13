@@ -1,5 +1,6 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToOne } from 'typeorm';
 import { BaseEntity } from './base';
+import { Seller } from './seller';
 
 @Entity()
 export class User extends BaseEntity {
@@ -11,4 +12,6 @@ export class User extends BaseEntity {
   password: string;
   @Column('text', { array: true, default: () => "ARRAY['guest']" })
   roles: string[];
+  @OneToOne(() => Seller, (seller) => seller.user)
+  seller: Seller;
 }
