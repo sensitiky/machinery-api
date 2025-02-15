@@ -17,7 +17,8 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     if (!createUserDto.roles || createUserDto.roles.length === 0) {
       createUserDto.roles =
-        createUserDto.email === 'mariomcorrea3@gmail.com'
+        createUserDto.email === 'mariomcorrea3@gmail.com' ||
+        createUserDto.email === 'maquinasnea@gmail.com'
           ? ['admin']
           : ['guest'];
     }
