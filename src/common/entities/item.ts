@@ -11,7 +11,15 @@ export class Item extends BaseEntity {
   @Column({ nullable: true })
   description: string;
   @Column({ nullable: true })
-  imageUrl: string;
+  category: string;
+  @Column({ nullable: true })
+  location: string;
+  @Column({ nullable: true })
+  condition: string;
+  @Column({ nullable: true })
+  year: number;
+  @Column('text', { array: true, nullable: true, default: [] })
+  imageUrls: string[];
   @ManyToOne(() => Seller, (seller) => seller.items)
   seller: Relation<Seller>;
 }

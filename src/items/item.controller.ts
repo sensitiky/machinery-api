@@ -8,12 +8,12 @@ import {
   Delete,
   Query,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ItemsService } from './item.service';
 import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('items')
 export class ItemsController {
@@ -38,15 +38,15 @@ export class ItemsController {
     return this.itemsService.search(query);
   }
   @Post('publish')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FilesInterceptor('files', 8))
   async createWithImage(
     @Body() body: any,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
     const createItemDto =
       typeof body.data === 'string' ? JSON.parse(body.data) : body.data;
 
-    return this.itemsService.createWithImage(createItemDto, file);
+    return this.itemsService.createWithImage(createItemDto, files);
   }
   @Get(':id')
   async findOne(@Param('id') id: string) {

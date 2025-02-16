@@ -30,4 +30,8 @@ export class CloudinaryService {
       readable.pipe(upload);
     });
   }
+  async uploadMultipleImages(files: Express.Multer.File[]): Promise<string[]> {
+    const uploadPromises = files.map((file) => this.uploadImage(file));
+    return Promise.all(uploadPromises);
+  }
 }

@@ -40,13 +40,13 @@ export class ItemsService {
   }
   async createWithImage(
     createItemDto: CreateItemDto,
-    file?: Express.Multer.File,
+    files?: Express.Multer.File[],
   ): Promise<Item> {
     try {
-      let imageUrl: string | undefined;
+      let imageUrls: string[] | [];
 
-      if (file) {
-        imageUrl = await this.cloudinaryService.uploadImage(file);
+      if (files) {
+        imageUrls = await this.cloudinaryService.uploadMultipleImages(files);
       }
       const user = await this.userRepository.findOne({
         where: { email: createItemDto.seller.email },
@@ -65,7 +65,7 @@ export class ItemsService {
 
       const item = this.itemsRepository.create({
         ...createItemDto,
-        imageUrl,
+        imageUrls,
         seller,
       });
 
