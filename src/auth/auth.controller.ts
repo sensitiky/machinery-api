@@ -1,5 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { User } from '../common/entities/user';
+import { CreateUserDto } from '../common/dtos/user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,9 +19,7 @@ export class AuthController {
 
   // Registration endpoint
   @Post('register')
-  async register(
-    @Body() body: { username: string; password: string; roles?: string[] },
-  ) {
+  async register(@Body() body: CreateUserDto) {
     return this.authService.register(body);
   }
 }
