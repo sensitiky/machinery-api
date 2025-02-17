@@ -33,6 +33,14 @@ export class ItemsController {
   async findFeatured() {
     return await this.itemsService.findFeatured();
   }
+  @Get('recommendations')
+  async findRecommendations(
+    @Param('category') category: string,
+    @Param('limit') limit: number,
+    @Param('exclude') exclude: number,
+  ) {
+    return await this.itemsService.findRecommendation(category, limit, exclude);
+  }
   @Get('search')
   async searchItems(@Query('query') query: string) {
     return this.itemsService.search(query);

@@ -6,7 +6,6 @@ import { Item } from '../common/entities/item';
 import { Seller } from '../common/entities/seller';
 import { CloudinaryService } from './cloudinary.service';
 import { User } from '../common/entities/user';
-import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class ItemsService {
@@ -102,6 +101,23 @@ export class ItemsService {
       return items;
     } catch (error) {
       this.logger.error(error);
+    }
+  }
+  async findRecommendation(
+    category: string,
+    limit: number,
+    exclude: number,
+  ): Promise<Item[]> {
+    try {
+      const recommendation = await this.itemsRepository.find({
+        where: { category: category },
+        take: limit,
+        skip: exclude,
+      });
+      return recommendation;
+    } catch (e) {
+      this.logger.error(e);
+      throw new Error('Error finding recommendations');
     }
   }
   async findOne(id: number): Promise<Item> {
