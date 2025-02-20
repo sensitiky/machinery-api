@@ -41,12 +41,15 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
-  async findOne(id: number): Promise<User> {
-    return this.usersRepository.findOneBy({ id });
+  async findOneById(id: number): Promise<User> {
+    return await this.usersRepository.findOne({
+      where: { id },
+      relations: ['seller', 'seller.items'],
+    });
   }
 
   async findByEmail(email: string): Promise<User> {
-    return this.usersRepository.findOne({
+    return await this.usersRepository.findOne({
       where: { email: email },
       relations: ['seller', 'seller.items'],
     });
@@ -54,7 +57,7 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     await this.usersRepository.update(id, updateUserDto);
-    return this.findOne(id);
+    return this.findOneById(id);
   }
 
   async remove(id: number): Promise<void> {

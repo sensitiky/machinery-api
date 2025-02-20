@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsAlphanumeric,
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { Seller } from '../entities/seller';
 
 export class CreateItemDto {
@@ -12,6 +18,8 @@ export class CreateItemDto {
   @IsOptional()
   @IsArray()
   image?: string[];
+  @IsAlphanumeric()
+  condition: string;
   seller: Seller;
 }
 export class UpdateItemDto {

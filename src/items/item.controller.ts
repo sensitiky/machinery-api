@@ -19,7 +19,6 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
-  // Anyone can view items
   @Get()
   findAll() {
     return this.itemsService.findAll();
@@ -35,11 +34,11 @@ export class ItemsController {
   }
   @Get('recommendations')
   async findRecommendations(
-    @Param('category') category: string,
-    @Param('limit') limit: number,
-    @Param('exclude') exclude: number,
+    @Query('category') category: string,
+    @Query('exclude') exclude: number,
   ) {
-    return await this.itemsService.findRecommendation(category, limit, exclude);
+    console.log(category, exclude);
+    return await this.itemsService.findRecommendation(category, exclude);
   }
   @Get('search')
   async searchItems(@Query('query') query: string) {
@@ -53,7 +52,6 @@ export class ItemsController {
   ) {
     const createItemDto =
       typeof body.data === 'string' ? JSON.parse(body.data) : body.data;
-
     return this.itemsService.createWithImage(createItemDto, files);
   }
   @Get(':id')

@@ -1,5 +1,5 @@
 import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
-import { ILike, Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
 import { Item } from '../common/entities/item';
@@ -85,6 +85,7 @@ export class ItemsService {
       const items = await this.itemsRepository.find({
         order: { createdAt: 'desc' },
         relations: ['seller'],
+        take: 3,
       });
       return items;
     } catch (error) {
@@ -103,16 +104,12 @@ export class ItemsService {
       this.logger.error(error);
     }
   }
-  async findRecommendation(
-    category: string,
-    limit: number,
-    exclude: number,
-  ): Promise<Item[]> {
+  async findRecommendation(category: string, exclude: number): Promise<Item[]> {
     try {
       const recommendation = await this.itemsRepository.find({
-        where: { category: category },
-        take: limit,
-        skip: exclude,
+        where: { category: category, id: Not(exclude) },
+        take: 4,
+        cache: true,
       });
       return recommendation;
     } catch (e) {
