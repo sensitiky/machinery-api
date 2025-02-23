@@ -37,7 +37,6 @@ export class ItemsController {
     @Query('category') category: string,
     @Query('exclude') exclude: number,
   ) {
-    console.log(category, exclude);
     return await this.itemsService.findRecommendation(category, exclude);
   }
   @Get('search')
