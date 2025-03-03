@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ItemsService } from './item.service';
-import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
+import { CreateItemAdmindDto, UpdateItemDto } from '../common/dtos/item.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('items')
@@ -61,10 +61,23 @@ export class ItemsController {
   // Only admin and user roles can create/update/delete items
   @Post()
   @Roles('admin', 'user')
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
+  @UseInterceptors(FilesInterceptor('files', 8))
+  async create(
+    @Body() createItemDto: CreateItemAdmindDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ) {
+    return await this.itemsService.createAdminWithImage(createItemDto, files);
   }
-
+  @Post('featured')
+  @Roles('admin')
+  async switchToFeatured(
+    @Body() body: { itemId: number; isFeatured: boolean },
+  ) {
+    return await this.itemsService.switchToFeatured(
+      body.itemId,
+      body.isFeatured,
+    );
+  }
   @Patch(':id')
   @Roles('admin', 'user')
   update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {

@@ -20,6 +20,8 @@ export class Item extends BaseEntity {
   year: number;
   @Column('text', { array: true, nullable: true, default: [] })
   imageUrls: string[];
+  @Column({ default: false })
+  isFeatured: boolean;
   @ManyToOne(() => Seller, (seller) => seller.items)
   seller: Relation<Seller>;
 }

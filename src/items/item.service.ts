@@ -1,7 +1,11 @@
 import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import { ILike, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateItemDto, UpdateItemDto } from '../common/dtos/item.dto';
+import {
+  CreateItemAdmindDto,
+  CreateItemDto,
+  UpdateItemDto,
+} from '../common/dtos/item.dto';
 import { Item } from '../common/entities/item';
 import { Seller } from '../common/entities/seller';
 import { CloudinaryService } from './cloudinary.service';
@@ -20,18 +24,31 @@ export class ItemsService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(createItemDto: CreateItemDto): Promise<Item> {
+  async createAdminWithImage(
+    createItemDto: CreateItemAdmindDto,
+    files?: Express.Multer.File[],
+  ): Promise<Item> {
+    let imageUrls: string[] | [];
+
+    if (files) {
+      imageUrls = await this.cloudinaryService.uploadMultipleImages(files);
+    }
+    const sellerData = {
+      email: createItemDto['seller.email'],
+      username: createItemDto['seller.username'],
+    };
     let seller = await this.sellerRepository.findOne({
-      where: { email: createItemDto.seller.email },
+      where: { email: sellerData.email },
     });
 
     if (!seller) {
-      seller = this.sellerRepository.create(createItemDto.seller);
+      seller = this.sellerRepository.create(sellerData);
       seller = await this.sellerRepository.save(seller);
     }
 
     const item = this.itemsRepository.create({
       ...createItemDto,
+      imageUrls,
       seller,
     });
 
@@ -74,6 +91,17 @@ export class ItemsService {
       throw error;
     }
   }
+  async switchToFeatured(itemId: number, isFeatured: boolean): Promise<Item> {
+    try {
+      const item = await this.itemsRepository.findOne({
+        where: { id: itemId },
+      });
+      item.isFeatured = isFeatured;
+      return await this.itemsRepository.save(item);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
   async findAll(orderBy: 'asc' | 'desc' = 'asc'): Promise<Item[]> {
     return this.itemsRepository.find({
       order: { createdAt: orderBy },
@@ -96,6 +124,7 @@ export class ItemsService {
   async findFeatured(): Promise<Item[] | null> {
     try {
       const items = await this.itemsRepository.find({
+        where: { isFeatured: true },
         order: { createdAt: 'desc' },
         relations: ['seller'],
       });
