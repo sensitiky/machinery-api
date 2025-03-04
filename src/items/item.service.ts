@@ -102,18 +102,27 @@ export class ItemsService {
       this.logger.error(error);
     }
   }
-  async findAll(orderBy: 'asc' | 'desc' = 'asc'): Promise<Item[]> {
-    return this.itemsRepository.find({
-      order: { createdAt: orderBy },
+  async findAll(
+    page: number,
+    take: number,
+  ): Promise<{ items: Item[]; total: number }> {
+    const skip = (page - 1) * take;
+    const [items, total] = await this.itemsRepository.findAndCount({
+      order: { createdAt: 'desc' },
       relations: ['seller'],
+      take: take,
+      skip: skip,
     });
+    return {
+      items,
+      total,
+    };
   }
   async findLatest(): Promise<Item[]> {
     try {
       const items = await this.itemsRepository.find({
         order: { createdAt: 'desc' },
         relations: ['seller'],
-        take: 3,
       });
       return items;
     } catch (error) {

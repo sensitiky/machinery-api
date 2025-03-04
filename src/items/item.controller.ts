@@ -9,6 +9,8 @@ import {
   Query,
   UseInterceptors,
   UploadedFiles,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ItemsService } from './item.service';
@@ -20,8 +22,11 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get()
-  findAll() {
-    return this.itemsService.findAll();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('take', new DefaultValuePipe(10), ParseIntPipe) take: number,
+  ) {
+    return this.itemsService.findAll(page, take);
   }
   @Get('latest')
   async findLatest() {

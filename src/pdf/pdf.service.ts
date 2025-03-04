@@ -7,7 +7,7 @@ export class PdfService {
   constructor(private readonly itemsService: ItemsService) {}
 
   async generateItemsPdf(): Promise<Buffer> {
-    const items = await this.itemsService.findAll();
+    const items = await this.itemsService.findLatest();
 
     const doc = new PDFDocument({ margin: 50 });
     const buffers: Buffer[] = [];
