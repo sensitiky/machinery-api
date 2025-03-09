@@ -129,7 +129,15 @@ export class ItemsService {
       this.logger.error(error);
     }
   }
-
+  async getCategories(): Promise<string[]> {
+    const categories = await this.itemsRepository.find({
+      select: ['category'],
+    });
+    const uniqueCategories = Array.from(
+      new Set(categories.map((category) => category.category).filter(Boolean)),
+    );
+    return uniqueCategories.length > 0 ? uniqueCategories : [];
+  }
   async findFeatured(): Promise<Item[] | null> {
     try {
       const items = await this.itemsRepository.find({
@@ -143,6 +151,11 @@ export class ItemsService {
     }
   }
   async findRecommendation(category: string, exclude: number): Promise<Item[]> {
+    if (isNaN(exclude)) {
+      this.logger.error(`Invalid exclude ID: ${exclude}`);
+      throw new Error('Invalid exclude ID');
+    }
+
     try {
       const recommendation = await this.itemsRepository.find({
         where: { category: category, id: Not(exclude) },
@@ -150,25 +163,60 @@ export class ItemsService {
         cache: true,
       });
       return recommendation;
-    } catch (e) {
-      this.logger.error(e);
+    } catch (error) {
+      this.logger.error(`Error finding recommendations: ${error.message}`);
       throw new Error('Error finding recommendations');
     }
   }
   async findOne(id: number): Promise<Item> {
-    const response = await this.itemsRepository.findOne({
-      where: { id },
-      relations: ['seller', 'seller.items'],
-    });
-    return response;
+    if (isNaN(id)) {
+      this.logger.error(`Invalid ID: ${id}`);
+      throw new Error('Invalid item ID');
+    }
+
+    try {
+      const response = await this.itemsRepository.findOne({
+        where: { id },
+        relations: ['seller', 'seller.items'],
+      });
+
+      if (!response) {
+        throw new Error(`Item with ID ${id} not found`);
+      }
+
+      return response;
+    } catch (error) {
+      this.logger.error(`Error finding item with ID ${id}: ${error.message}`);
+      throw error;
+    }
   }
   async update(id: number, updateItemDto: UpdateItemDto): Promise<Item> {
-    await this.itemsRepository.update(id, updateItemDto);
-    return this.findOne(id);
+    if (isNaN(id)) {
+      this.logger.error(`Invalid ID: ${id}`);
+      throw new Error('Invalid item ID');
+    }
+
+    try {
+      await this.itemsRepository.update(id, updateItemDto);
+      return this.findOne(id);
+    } catch (error) {
+      this.logger.error(`Error updating item with ID ${id}: ${error.message}`);
+      throw error;
+    }
   }
 
   async remove(id: number): Promise<void> {
-    await this.itemsRepository.delete(id);
+    if (isNaN(id)) {
+      this.logger.error(`Invalid ID: ${id}`);
+      throw new Error('Invalid item ID');
+    }
+
+    try {
+      await this.itemsRepository.delete(id);
+    } catch (error) {
+      this.logger.error(`Error deleting item with ID ${id}: ${error.message}`);
+      throw error;
+    }
   }
   async search(query: string): Promise<Item[]> {
     const response = await this.itemsRepository.find({

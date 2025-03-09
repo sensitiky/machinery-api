@@ -40,13 +40,17 @@ export class ItemsController {
   @Get('recommendations')
   async findRecommendations(
     @Query('category') category: string,
-    @Query('exclude') exclude: number,
+    @Query('exclude', ParseIntPipe) exclude: number,
   ) {
     return await this.itemsService.findRecommendation(category, exclude);
   }
   @Get('search')
   async searchItems(@Query('query') query: string) {
     return this.itemsService.search(query);
+  }
+  @Get('/categories')
+  async getCategories() {
+    return this.itemsService.getCategories();
   }
   @Post('publish')
   @UseInterceptors(FilesInterceptor('files', 8))
@@ -59,8 +63,8 @@ export class ItemsController {
     return this.itemsService.createWithImage(createItemDto, files);
   }
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.itemsService.findOne(+id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.itemsService.findOne(id);
   }
 
   // Only admin and user roles can create/update/delete items
@@ -85,13 +89,16 @@ export class ItemsController {
   }
   @Patch(':id')
   @Roles('admin', 'user')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.itemsService.update(+id, updateItemDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateItemDto: UpdateItemDto,
+  ) {
+    return this.itemsService.update(id, updateItemDto);
   }
 
   @Delete(':id')
   @Roles('admin', 'user')
-  remove(@Param('id') id: string) {
-    return this.itemsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.itemsService.remove(id);
   }
 }
